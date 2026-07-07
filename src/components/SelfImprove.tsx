@@ -78,6 +78,8 @@ export default function SelfImprove() {
     } finally {
       setSyncing(false);
     }
+    // Auto-dismiss after 5 seconds
+    setTimeout(() => setSyncResult(""), 5000);
   }
 
   async function markSuccess(id: string) {

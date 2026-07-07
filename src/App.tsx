@@ -107,7 +107,7 @@ function SetupWizard({ onDone }: { onDone: () => void }) {
         <div className="max-w-md w-full space-y-4">
           <h1 className="text-2xl font-bold text-center">Welcome to OpenClaw Shell</h1>
           <p className="text-muted-foreground text-center">
-            Let's get everything set up for you. No manual installs needed.
+            We'll get everything ready for you. No manual installs needed.
           </p>
 
           <div className="bg-card border rounded-lg p-4 space-y-2">
@@ -157,7 +157,10 @@ function SetupWizard({ onDone }: { onDone: () => void }) {
           </button>
 
           {installLog && (
-            <p className="text-xs text-muted-foreground text-center">{installLog}</p>
+            <div className="text-xs text-muted-foreground text-center space-y-1">
+              <p>{installLog}</p>
+              <p className="text-[10px] opacity-60">This only happens once. Future launches are instant.</p>
+            </div>
           )}
         </div>
       </div>
@@ -168,9 +171,9 @@ function SetupWizard({ onDone }: { onDone: () => void }) {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-6 p-8">
         <div className="max-w-md w-full space-y-4">
-          <h1 className="text-2xl font-bold text-center">Safety Settings</h1>
+          <h1 className="text-2xl font-bold text-center">Safety First</h1>
           <p className="text-muted-foreground text-center">
-            Family mode is on by default. Commands need approval before running.
+            Family mode is on by default. The AI can't run commands without your approval.
           </p>
           <div className="bg-card border rounded-lg p-4 space-y-3">
             <div className="flex items-center gap-3">

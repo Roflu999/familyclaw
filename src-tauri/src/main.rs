@@ -37,7 +37,8 @@ async fn install_openclaw(window: tauri::Window) -> Result<(), String> {
 #[tauri::command]
 async fn gateway_status(state: State<'_, AppState>) -> Result<openclaw::GatewayStatus, String> {
     let status = openclaw::get_gateway_status().await.map_err(|e| e.to_string())?;
-    *state.gateway_managed.lock().unwrap() = status.managed_by_shell;
+    let mut managed = state.gateway_managed.lock().unwrap_or_else(|e| e.into_inner());
+    *managed = status.managed_by_shell;
     Ok(status)
 }
 
@@ -47,35 +48,62 @@ async fn start_gateway(state: State<'_, AppState>) -> Result<u32, String> {
     if status.running && !status.managed_by_shell {
         return Err("Gateway already running outside shell. Stop it via CLI first.".to_string());
     }
+    // If already running and managed by us, just return the existing PID
+    if status.running && status.managed_by_shell {
+        if let Some(pid) = status.pid {
+            let mut pid_guard = state.gateway_pid.lock().unwrap_or_else(|e| e.into_inner());
+            *pid_guard = Some(pid);
+            let mut managed = state.gateway_managed.lock().unwrap_or_else(|e| e.into_inner());
+            *managed = true;
+            return Ok(pid);
+        }
+    }
     let pid = openclaw::start_gateway().await.map_err(|e| e.to_string())?;
-    *state.gateway_pid.lock().unwrap() = Some(pid);
-    *state.gateway_managed.lock().unwrap() = true;
+    let mut pid_guard = state.gateway_pid.lock().unwrap_or_else(|e| e.into_inner());
+    *pid_guard = Some(pid);
+    let mut managed = state.gateway_managed.lock().unwrap_or_else(|e| e.into_inner());
+    *managed = true;
     Ok(pid)
 }
 
 #[tauri::command]
 async fn stop_gateway(state: State<'_, AppState>) -> Result<(), String> {
-    if !*state.gateway_managed.lock().unwrap() {
+    let (managed, pid) = {
+        let mg = state.gateway_managed.lock().unwrap_or_else(|e| e.into_inner());
+        let pg = state.gateway_pid.lock().unwrap_or_else(|e| e.into_inner());
+        (*mg, *pg)
+    };
+    if !managed {
         return Err("Gateway was not started by this shell. Use CLI to stop it.".to_string());
     }
-    if let Some(pid) = *state.gateway_pid.lock().unwrap() {
+    if let Some(pid) = pid {
         openclaw::stop_gateway(pid).await.map_err(|e| e.to_string())?;
-        *state.gateway_pid.lock().unwrap() = None;
-        *state.gateway_managed.lock().unwrap() = false;
+    }
+    {
+        let mut pg = state.gateway_pid.lock().unwrap_or_else(|e| e.into_inner());
+        *pg = None;
+        let mut mg = state.gateway_managed.lock().unwrap_or_else(|e| e.into_inner());
+        *mg = false;
     }
     Ok(())
 }
 
 #[tauri::command]
 async fn restart_gateway(state: State<'_, AppState>) -> Result<u32, String> {
-    if *state.gateway_managed.lock().unwrap() {
-        if let Some(pid) = *state.gateway_pid.lock().unwrap() {
-            let _ = openclaw::stop_gateway(pid).await;
+    {
+        let managed = *state.gateway_managed.lock().unwrap_or_else(|e| e.into_inner());
+        let pid = *state.gateway_pid.lock().unwrap_or_else(|e| e.into_inner());
+        if managed {
+            if let Some(pid) = pid {
+                let _ = openclaw::stop_gateway(pid).await;
+            }
         }
     }
     let pid = openclaw::start_gateway().await.map_err(|e| e.to_string())?;
-    *state.gateway_pid.lock().unwrap() = Some(pid);
-    *state.gateway_managed.lock().unwrap() = true;
+    let mut pg = state.gateway_pid.lock().unwrap_or_else(|e| e.into_inner());
+    *pg = Some(pid);
+    let mut mg = state.gateway_managed.lock().unwrap_or_else(|e| e.into_inner());
+    *mg = true;
     Ok(pid)
 }
 

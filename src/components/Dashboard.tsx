@@ -46,13 +46,21 @@ export default function Dashboard() {
   const [error, setError] = useState<string | null>(null);
 
   async function fetchStatus() {
-    const s = await invoke<GatewayStatus>("gateway_status");
-    setStatus(s);
+    try {
+      const s = await invoke<GatewayStatus>("gateway_status");
+      setStatus(s);
+    } catch {
+      // Silently ignore polling errors — UI already shows error on user actions
+    }
   }
 
   async function fetchLogs() {
-    const l = await invoke<string>("get_logs", { lines: 100 });
-    setLogs(l);
+    try {
+      const l = await invoke<string>("get_logs", { lines: 100 });
+      setLogs(l);
+    } catch (e) {
+      setLogs(`Failed to load logs: ${e}`);
+    }
   }
 
   useEffect(() => {
