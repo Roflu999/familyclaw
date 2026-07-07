@@ -38,12 +38,15 @@ interface DoctorResult {
   healthy: boolean;
 }
 
+import { useNotification } from "../hooks/useNotification";
+
 export default function Dashboard() {
   const [status, setStatus] = useState<GatewayStatus | null>(null);
   const [logs, setLogs] = useState("");
   const [loading, setLoading] = useState(false);
   const [doctor, setDoctor] = useState<DoctorResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { notify } = useNotification();
 
   async function fetchStatus() {
     try {
@@ -74,8 +77,10 @@ export default function Dashboard() {
     setError(null);
     try {
       await invoke("start_gateway");
+      await notify("OpenClaw Shell", "Gateway started successfully");
     } catch (e) {
       setError(String(e));
+      await notify("OpenClaw Shell", `Gateway failed to start: ${e}`);
     }
     await fetchStatus();
     setLoading(false);
@@ -86,8 +91,10 @@ export default function Dashboard() {
     setError(null);
     try {
       await invoke("stop_gateway");
+      await notify("OpenClaw Shell", "Gateway stopped");
     } catch (e) {
       setError(String(e));
+      await notify("OpenClaw Shell", `Gateway failed to stop: ${e}`);
     }
     await fetchStatus();
     setLoading(false);
@@ -98,8 +105,10 @@ export default function Dashboard() {
     setError(null);
     try {
       await invoke("restart_gateway");
+      await notify("OpenClaw Shell", "Gateway restarted");
     } catch (e) {
       setError(String(e));
+      await notify("OpenClaw Shell", `Gateway failed to restart: ${e}`);
     }
     await fetchStatus();
     setLoading(false);

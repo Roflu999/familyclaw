@@ -2,6 +2,8 @@
 
 use std::sync::Mutex;
 use tauri::{Manager, State};
+use tauri::menu::{MenuBuilder, MenuItemBuilder, PredefinedMenuItem};
+use tauri::tray::TrayIconBuilder;
 
 mod installer;
 mod openclaw;
@@ -247,20 +249,76 @@ fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_autostart::init(tauri_plugin_autostart::MacosLauncher::LaunchAgent, Some(vec!["--minimized"])))
+        .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(AppState {
             gateway_pid: Mutex::new(None),
             gateway_managed: Mutex::new(false),
         })
-        .on_window_event(|window, event| {
-            if let tauri::WindowEvent::CloseRequested { .. } = event {
-                let state = window.state::<AppState>();
-                let managed = *state.gateway_managed.lock().unwrap_or_else(|e| *e.get_ref());
-                if managed {
-                    if let Some(pid) = *state.gateway_pid.lock().unwrap_or_else(|e| *e.get_ref()) {
-                        // Best-effort cleanup on close
-                        let _ = tauri::async_runtime::block_on(openclaw::stop_gateway(pid));
+        .setup(|app| {
+            // Build tray menu
+            let menu = MenuBuilder::new(app)
+                .item(&MenuItemBuilder::new("Show OpenClaw Shell").id("show").build(app)?)
+                .item(&MenuItemBuilder::new("Open Dashboard").id("dashboard").build(app)?)
+                .separator()
+                .item(&MenuItemBuilder::new("Start Gateway").id("start").build(app)?)
+                .item(&MenuItemBuilder::new("Stop Gateway").id("stop").build(app)?)
+                .separator()
+                .item(&MenuItemBuilder::new("Quit").id("quit").build(app)?)
+                .build()?;
+
+            TrayIconBuilder::new()
+                .icon(app.default_window_icon().unwrap().clone())
+                .tooltip("OpenClaw Shell")
+                .menu(&menu)
+                .on_menu_event(|app, event| {
+                    match event.id().as_ref() {
+                        "show" => {
+                            if let Some(window) = app.get_webview_window("main") {
+                                let _ = window.show();
+                                let _ = window.set_focus();
+                            }
+                        }
+                        "dashboard" => {
+                            let _ = tauri::async_runtime::block_on(openclaw::launch_dashboard());
+                        }
+                        "start" => {
+                            let state = app.state::<AppState>();
+                            let _ = tauri::async_runtime::block_on(async move {
+                                let _ = start_gateway(state).await;
+                            });
+                        }
+                        "stop" => {
+                            let state = app.state::<AppState>();
+                            let _ = tauri::async_runtime::block_on(async move {
+                                let _ = stop_gateway(state).await;
+                            });
+                        }
+                        "quit" => {
+                            app.exit(0);
+                        }
+                        _ => {}
                     }
-                }
+                })
+                .on_tray_icon_event(|tray, event| {
+                    if let tauri::tray::TrayIconEvent::DoubleClick { .. } = event {
+                        let app = tray.app_handle();
+                        if let Some(window) = app.get_webview_window("main") {
+                            let _ = window.show();
+                            let _ = window.set_focus();
+                        }
+                    }
+                })
+                .build(app)?;
+
+            Ok(())
+        })
+        .on_window_event(|window, event| {
+            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                // Hide window instead of quitting — let tray keep app alive
+                api.prevent_close();
+                let _ = window.hide();
             }
         })
         .invoke_handler(tauri::generate_handler![
