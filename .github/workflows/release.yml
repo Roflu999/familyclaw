@@ -1,0 +1,91 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install Rust
+        uses: dtolnay/rust-action@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check frontend
+        run: npx tsc --noEmit
+
+      - name: Check Rust code
+        working-directory: src-tauri
+        run: cargo check
+
+      - name: Build Tauri app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: 'OpenClaw Shell ${{ github.ref_name }}'
+          releaseBody: |
+            ## Download
+
+            | File | Use When |
+            |------|----------|
+            | **`.msi`** | Standard install — adds to Start Menu, auto-updates WebView2 |
+            | **`.exe`** | Quick install — same as MSI but smaller, NSIS-based |
+            | **`-portable.zip`** | Run from Downloads folder — no install, just unzip & double-click |
+
+            ## Portable Version Notes
+            - No installation required — unzip anywhere and run `OpenClaw-Shell.exe`
+            - Requires [WebView2 Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/) (pre-installed on Windows 11, most Windows 10 PCs)
+            - Settings and learnings are still saved to `~/.openclaw/` (your home folder)
+
+            ## What's New
+            See [CHANGELOG.md](CHANGELOG.md) for full details.
+          releaseDraft: true
+          prerelease: false
+
+      - name: Create portable zip
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}".TrimStart('v')
+          $releaseDir = "src-tauri/target/release"
+          $portableDir = "OpenClaw-Shell-$version-portable"
+          New-Item -ItemType Directory -Force -Path $portableDir
+          Copy-Item "$releaseDir/openclaw-shell.exe" "$portableDir/OpenClaw-Shell.exe"
+          # Copy any DLLs next to the exe
+          Get-ChildItem "$releaseDir/*.dll" | Copy-Item -Destination $portableDir -ErrorAction SilentlyContinue
+          # Include WebView2 checker
+          Copy-Item "scripts/check-webview2.bat" "$portableDir/Start.bat"
+          # Create a readme inside the zip
+          @"
+          OpenClaw Shell (Portable)
+          =========================
+          1. Double-click OpenClaw-Shell.exe to run
+          2. No installation required
+          3. Requires WebView2 Runtime (usually already installed on Windows 10/11)
+          4. Settings saved to your home folder: %USERPROFILE%\.openclaw\
+          "@ | Out-File -Encoding utf8 "$portableDir/README.txt"
+          Compress-Archive -Path "$portableDir/*" -DestinationPath "$portableDir.zip" -Force
+
+      - name: Upload portable zip to release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: OpenClaw-Shell-*-portable.zip
+          draft: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
