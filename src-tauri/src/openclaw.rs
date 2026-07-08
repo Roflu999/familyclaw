@@ -373,7 +373,7 @@ pub async fn run_doctor() -> anyhow::Result<String> {
 }
 
 pub async fn launch_tui() -> anyhow::Result<()> {
-    let bin = crate::installer::resolve_openclaw()
+    let _bin = crate::installer::resolve_openclaw()
         .ok_or_else(|| anyhow::anyhow!("openclaw not found"))?;
     #[cfg(target_os = "windows")]
     {

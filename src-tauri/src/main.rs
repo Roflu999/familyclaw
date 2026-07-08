@@ -2,7 +2,7 @@
 
 use std::sync::Mutex;
 use tauri::{Manager, State};
-use tauri::menu::{MenuBuilder, MenuItemBuilder, PredefinedMenuItem};
+use tauri::menu::{MenuBuilder, MenuItemBuilder};
 use tauri::tray::TrayIconBuilder;
 
 mod installer;
