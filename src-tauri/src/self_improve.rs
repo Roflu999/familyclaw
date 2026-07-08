@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use std::path::PathBuf;
 use tokio::fs;
 use uuid::Uuid;
@@ -442,7 +441,7 @@ async fn sync_lesson_to_openclaw(lesson: &Lesson) -> anyhow::Result<()> {
     let mut existing = if path.exists() {
         fs::read_to_string(&path).await?
     } else {
-        format!("# Shell Learnings \u2014 {}\n\n", date)
+        format!("# Shell Learnings \u{2014} {}\n\n", date)
     };
 
     existing.push_str(&entry);

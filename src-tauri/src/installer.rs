@@ -5,6 +5,7 @@ use std::time::Duration;
 use tauri::Window;
 use tokio::fs;
 use tokio::process::Command;
+use sha2::Digest;
 
 /// Managed runtime directory inside the app's data dir.
 fn managed_dir() -> anyhow::Result<PathBuf> {
@@ -100,7 +101,7 @@ pub async fn check_prerequisites() -> anyhow::Result<PrereqStatus> {
     })
 }
 
-fn resolve_npm() -> Option<PathBuf> {
+pub fn resolve_npm() -> Option<PathBuf> {
     let managed = npm_bin();
     if managed.exists() {
         return Some(managed);

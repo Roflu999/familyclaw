@@ -37,7 +37,7 @@ pub async fn create_backup() -> anyhow::Result<String> {
 
     let file = File::create(&backup_path)?;
     let mut zip = zip::ZipWriter::new(file);
-    let options = zip::write::SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflate);
+    let options = zip::write::SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
 
     for entry in WalkDir::new(&source).follow_links(false) {
         let entry = entry?;
