@@ -1,7 +1,7 @@
 {
   "name": "openclaw-shell",
   "private": true,
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "Family-friendly desktop shell for OpenClaw — safety-first, self-improving GUI wrapper",
   "author": "Your Name <you@example.com>",
   "license": "MIT",

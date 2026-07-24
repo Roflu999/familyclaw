@@ -202,7 +202,11 @@ async fn install_nodejs_inner(_window: &Window) -> anyhow::Result<()> {
         fs::write(&tar_path, &bytes).await?;
 
         let status = Command::new("tar")
-            .args(["-xzf", tar_path.to_str().unwrap(), "-C", dir.to_str().unwrap(), "--strip-components=1"])
+            .arg("-xzf")
+            .arg(&tar_path)
+            .arg("-C")
+            .arg(&dir)
+            .arg("--strip-components=1")
             .status()
             .await?;
         if !status.success() {
@@ -223,7 +227,11 @@ async fn install_nodejs_inner(_window: &Window) -> anyhow::Result<()> {
         fs::write(&tar_path, &bytes).await?;
 
         let status = Command::new("tar")
-            .args(["-xf", tar_path.to_str().unwrap(), "-C", dir.to_str().unwrap(), "--strip-components=1"])
+            .arg("-xf")
+            .arg(&tar_path)
+            .arg("-C")
+            .arg(&dir)
+            .arg("--strip-components=1")
             .status()
             .await?;
         if !status.success() {

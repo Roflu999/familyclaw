@@ -324,7 +324,7 @@ pub async fn get_preferences(category: Option<String>) -> anyhow::Result<Vec<Use
         prefs.retain(|p| p.category == cat);
     }
 
-    prefs.sort_by(|a, b| b.confidence.partial_cmp(&a.confidence).unwrap());
+    prefs.sort_by(|a, b| b.confidence.partial_cmp(&a.confidence).unwrap_or(std::cmp::Ordering::Equal));
     Ok(prefs)
 }
 
@@ -413,7 +413,7 @@ pub async fn generate_insights() -> anyhow::Result<Vec<Insight>> {
         }
     }
 
-    insights.sort_by(|a, b| b.confidence.partial_cmp(&a.confidence).unwrap());
+    insights.sort_by(|a, b| b.confidence.partial_cmp(&a.confidence).unwrap_or(std::cmp::Ordering::Equal));
     Ok(insights)
 }
 

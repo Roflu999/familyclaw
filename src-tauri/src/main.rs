@@ -268,8 +268,12 @@ fn main() {
                 .item(&MenuItemBuilder::new("Quit").id("quit").build(app)?)
                 .build()?;
 
+            let icon = app.default_window_icon()
+                .cloned()
+                .ok_or_else(|| anyhow::anyhow!("no default window icon found — ensure icons are built"))?;
+
             TrayIconBuilder::new()
-                .icon(app.default_window_icon().unwrap().clone())
+                .icon(icon)
                 .tooltip("OpenClaw Shell")
                 .menu(&menu)
                 .on_menu_event(|app, event| {

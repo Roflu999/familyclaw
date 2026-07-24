@@ -2,6 +2,15 @@
 
 All notable changes to OpenClaw Shell.
 
+## [0.2.5] - 2025-07-24
+
+### Fixed
+- `main.rs`: tray icon no longer panics if default window icon is missing (returns clean error instead)
+- `installer.rs`: macOS/Linux Node.js extraction now passes paths directly to `tar` without `to_str().unwrap()`, avoiding panic on non-UTF8 paths
+- `self_improve.rs`: preference/insight sorting no longer panics on NaN confidence values
+- `config.rs`: atomic temp file now includes process ID to prevent collision during concurrent writes
+- `Dashboard.tsx`: added missing error handling around `runDoctor` to prevent unhandled promise rejections
+
 ## [0.2.4] - 2025-07-24
 
 ### Fixed

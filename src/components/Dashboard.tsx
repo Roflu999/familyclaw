@@ -116,8 +116,13 @@ export default function Dashboard() {
 
   async function runDoctor() {
     setLoading(true);
-    const result = await invoke<DoctorResult>("run_doctor");
-    setDoctor(result);
+    setError(null);
+    try {
+      const result = await invoke<DoctorResult>("run_doctor");
+      setDoctor(result);
+    } catch (e) {
+      setError(`Doctor failed: ${e}`);
+    }
     setLoading(false);
   }
 

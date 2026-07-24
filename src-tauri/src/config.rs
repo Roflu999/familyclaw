@@ -69,7 +69,7 @@ pub async fn set_config(incoming: Value) -> anyhow::Result<()> {
     let _: Value = serde_json::from_str(&pretty)?; // ensure valid
 
     // 4. Atomic write via temp + rename
-    let tmp = path.with_extension("tmp");
+    let tmp = path.with_extension(format!("tmp.{}", std::process::id()));
     fs::write(&tmp, &pretty).await?;
 
     // 5. Backup old config before replacing
