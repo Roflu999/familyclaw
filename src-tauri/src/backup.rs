@@ -69,7 +69,6 @@ pub async fn create_backup() -> anyhow::Result<String> {
 
 pub async fn restore_backup(path: &str) -> anyhow::Result<()> {
     let home = dirs::home_dir().ok_or_else(|| anyhow::anyhow!("home dir not found"))?;
-    let _target = home.join(".openclaw");
     let file = File::open(path)?;
     let mut archive = zip::ZipArchive::new(file)?;
 

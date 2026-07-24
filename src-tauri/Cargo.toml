@@ -1,6 +1,6 @@
 [package]
 name = "openclaw-shell"
-version = "0.2.3"
+version = "0.2.4"
 description = "Family-friendly shell for OpenClaw"
 authors = ["OpenClaw Shell Contributors"]
 edition = "2021"

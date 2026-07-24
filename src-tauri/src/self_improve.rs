@@ -260,7 +260,6 @@ pub async fn match_pattern(text: &str) -> anyhow::Result<Vec<(Lesson, u32)>> {
 
     // Also do fuzzy match on recent lessons
     for lesson in &store.lessons {
-        let _lesson_text = format!("{} {}", lesson.trigger, lesson.observation).to_lowercase();
         if lower.contains(&lesson.trigger.to_lowercase()) || lower.contains(&lesson.observation.to_lowercase()) {
             if !matches.iter().any(|(l, _)| l.id == lesson.id) {
                 matches.push((lesson.clone(), 1));

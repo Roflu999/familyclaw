@@ -2,6 +2,39 @@
 
 All notable changes to OpenClaw Shell.
 
+## [0.2.4] - 2025-07-24
+
+### Fixed
+- `launch_tui` now uses the resolved OpenClaw binary path on all platforms instead of relying on PATH (Windows) or referencing an undefined variable (macOS/Linux)
+- Settings updater no longer crashes with a broken Tauri v1 internal API call; instead it shows a friendly "please restart" message
+- Removed dead code (unused `_target` in restore, unused `_lesson_text` in pattern matcher)
+
+## [0.2.3] - 2025-07-20
+
+### Fixed
+- Synced package.json and Cargo.lock versions
+
+## [0.2.2] - 2025-07-08
+
+### Fixed
+- Added frontend build step (`npm run build`) before `cargo check` in CI so Tauri's `frontendDist` validation passes
+- Fixed all Rust compiler warnings (unused imports, unused variables, unicode escapes, visibility, trait imports, zip API)
+- Bumped `dtolnay/rust-toolchain` action name in release workflow
+
+## [0.2.1] - 2025-07-08
+
+### Fixed
+- Fixed `dtolnay/rust-action` -> `dtolnay/rust-toolchain` action reference in CI
+
+## [0.2.0] - 2025-07-07
+
+### Added
+- System tray + background mode (window close hides to tray)
+- Auto-start on boot toggle
+- Light / Dark / Auto theme toggle
+- Desktop notifications for gateway events
+- Check for Updates button with auto-installer
+
 ## [0.1.0] - 2024-XX-XX
 
 ### Added

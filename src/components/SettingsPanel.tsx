@@ -68,8 +68,7 @@ export default function SettingsPanel() {
       if (update) {
         setUpdateResult(`Update available: ${update.version}. Installing...`);
         await update.downloadAndInstall();
-        setUpdateResult("Update installed. Restarting...");
-        await invoke("tauri", { __tauriModule: "Process", message: { cmd: "relaunch" } });
+        setUpdateResult("Update installed. Please restart the app to apply changes.");
       } else {
         setUpdateResult("You are on the latest version.");
       }

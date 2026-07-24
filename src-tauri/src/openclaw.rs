@@ -373,7 +373,7 @@ pub async fn run_doctor() -> anyhow::Result<String> {
 }
 
 pub async fn launch_tui() -> anyhow::Result<()> {
-    let _bin = crate::installer::resolve_openclaw()
+    let bin = crate::installer::resolve_openclaw()
         .ok_or_else(|| anyhow::anyhow!("openclaw not found"))?;
     #[cfg(target_os = "windows")]
     {
@@ -386,18 +386,25 @@ pub async fn launch_tui() -> anyhow::Result<()> {
             .unwrap_or(false);
         if wt {
             Command::new("cmd")
-                .args(["/C", "start", "wt", "openclaw", "chat"])
+                .arg("/C")
+                .arg("start")
+                .arg("wt")
+                .arg(&bin)
+                .arg("chat")
                 .spawn()?;
         } else {
             Command::new("cmd")
-                .args(["/C", "start", "openclaw", "chat"])
+                .arg("/C")
+                .arg("start")
+                .arg(&bin)
+                .arg("chat")
                 .spawn()?;
         }
     }
     #[cfg(not(target_os = "windows"))]
     {
         let mut cmd = Command::new(&bin);
-        cmd.args(["chat"]).spawn()?;
+        cmd.arg("chat").spawn()?;
     }
     Ok(())
 }
